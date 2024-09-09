@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Wardrobe Manager</title>
+    <link rel="icon" href="https://via.placeholder.com/16x16" type="image/x-icon">
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
+            background-color: #927861;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.9); /* Slightly transparent white */
+            padding: 40px;
+            border-radius: 20px; /* Rounded corners for consistency */
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+        }
+        h1 { 
+            color: #333; /* Darker text for contrast */
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 20px; 
+        }
+        .clothing-list {
+            height: 300px;
+            overflow-y: scroll;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+        .clothing-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #f9f9f9;
+            padding: 10px;
+            margin-bottom: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .clothing-item:hover {
+            background-color: #e9e9e9;
+        }
+        .button {
+            width: 150px; /* Make all buttons the same width */
+            padding: 12px 24px;
+            background-color: #927861; /* Blue color matching background */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        .button:hover {
+            background-color: #554435; /* Slightly darker blue on hover */
+            transform: translateY(-3px); /* Lifts the button slightly on hover */
+        }
+        .used-container {
+            display: flex;
+            align-items: center;
+            gap: 5px; /* Adds space between the checkbox and the label */
+        }
+        .used-checkbox {
+            transform: scale(1.5); /* Make checkbox bigger */
+            cursor: pointer;
+        }
+        .used-label {
+            font-size: 14px;
+        }
+        /* Modal Styles */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            background-color: rgba(0, 0, 0, 0.4); 
+        }
+        .modal-content, .confirm-modal-content {
+            background-color: #fefefe;
+            margin: 15% auto; 
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 10px;
+            max-height: 80vh; /* Limit modal height */
+            overflow-y: auto; /* Enable scrolling for overflow */
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .confirm-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .remove-mode {
+            background-color: red !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Your Wardrobe</h1>
+        <div class="clothing-list" id="clothingList">
+            <!-- Clothing items will be dynamically added here -->
+        </div>
+        <button class="button" onclick="openModal()">Add Clothing</button>
+        <button id="removeButton" class="button" onclick="enableRemoveMode()">Remove</button>
+        <button class="button" onclick="goBack()">Back</button> <!-- Back button -->
+    </div>
+
+    <!-- Modal for Adding/Editing Clothing -->
+    <div id="clothingModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle">Add/Edit Clothing</h2>
+            <label for="clothingName">Name:</label>
+            <input type="text" id="clothingName" required><br><br>
+            
+            <!-- Predefined material dropdown names -->
+            <label for="material">Material:</label>
+            <select id="material">
+                <option value="Select">Select</option>
+                <option value="Cotton">Cotton</option>
+                <option value="Denim">Denim</option>
+                <option value="Polyester">Polyester</option>
+                <option value="Linen">Linen</option>
+                <option value="Wool">Wool</option>
+                <option value="Cashmere">Cashmere</option>
+                <option value="Silk">Silk</option>
+                <option value="Nylon">Nylon</option>
+                <option value="Leather">Leather</option>
+                <option value="Viscose">Viscose</option>
+            </select><br><br>
+
+            <!-- Predefined clothing type dropdown names -->
+            <label for="clothingType">Type:</label>
+            <select id="clothingType">
+                <option value="Select">Select</option>
+                <option value="T-shirt">T-shirt</option>
+                <option value="Sweater">Sweater</option>
+                <option value="Hoodie">Hoodie</option>
+                <option value="Tank Top">Tank Top</option>
+                <option value="Blouse">Blouse</option>
+                <option value="Button Up Shirt">Button Up Shirt</option>
+                <option value="Dress">Dress</option>
+                <option value="Jeans">Jeans</option>
+                <option value="Trousers">Trousers</option>
+                <option value="Joggers">Joggers</option>
+                <option value="Shorts">Shorts</option>
+                <option value="Jacket">Jacket</option>
+                <option value="Scarf">Scarf</option>
+                <option value="Gloves">Gloves</option>
+                <option value="Socks">Socks</option>
+            </select><br><br>
+
+            <!-- Predefined size dropdown names -->
+            <label for="size">Size:</label>
+            <select id="size">
+                <option value="Select">Select</option>
+                <option value="XS">XS</option>
+                <option value="S">S</option>
+                <option value="M">M</option>
+                <option value="L">L</option>
+                <option value="XL">XL</option>
+            </select><br><br> 
+            
+            <!-- Wash Type Selection -->
+            <label>Wash Type:</label>
+            <input type="radio" name="washType" value="Dark"> Dark
+            <input type="radio" name="washType" value="White"> White
+            <input type="radio" name="washType" value="Colors"> Colors
+            <input type="radio" name="washType" value="Delicates"> Delicates/Separate<br><br>
+            
+            <label>Wash Temperature:</label>
+            <input type="radio" name="temperature" value="Cold"> Cold
+            <input type="radio" name="temperature" value="30"> 30°C
+            <input type="radio" name="temperature" value="40"> 40°C
+            <input type="radio" name="temperature" value="50"> 50°C
+            <input type="radio" name="temperature" value="90"> 90°C<br><br>
+            
+            <label for="dryMethod">Dry:</label>
+            <select id="dryMethod">
+                <option value="Select">Select</option>
+                <option value="Tumble Dry Low Heat">Tumble Dry Low Heat</option>
+                <option value="Tumble Dry Medium Heat">Tumble Dry Medium Heat</option>
+                <option value="Tumble Dry High Heat">Tumble Dry High Heat</option>
+                <option value="Line Dry">Line Dry</option>
+                <option value="Flat Dry">Flat Dry</option>
+                <option value="Do Not Dry">Do Not Dry</option>
+            </select><br><br>
+
+            <label for="customInstructions">Custom Instruction:</label><br>
+            <textarea id="customInstructions" rows="3" cols="30"></textarea><br><br>
+
+            <button class="button" onclick="saveClothing()">Save</button>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal for Removing Clothing -->
+    <div id="confirmModal" class="modal">
+        <div class="confirm-modal-content">
+            <h2>Are you sure you want to remove this item from your wardrobe?</h2>
+            <div class="confirm-buttons">
+                <button class="button" onclick="confirmRemove()">Yes</button>
+                <button class="button" onclick="closeConfirmModal()">No</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let wardrobeData = []; // Initialize an empty array to store clothing items
+        let editMode = false;
+        let currentItem = null;
+        let itemToRemove = null;
+        let removeMode = false;
+    
+        // Function to load wardrobe data from localStorage
+        function loadWardrobeData() {
+            const storedData = localStorage.getItem('wardrobeData');
+            if (storedData) {
+                wardrobeData = JSON.parse(storedData);
+                renderWardrobe(); // Render the wardrobe items on load
+            }
+        }
+    
+        // Function to save wardrobe data to localStorage (Serialization)
+        function saveWardrobeData() {
+            localStorage.setItem('wardrobeData', JSON.stringify(wardrobeData));
+        }
+    
+        // Function to open the modal
+        function openModal(edit = false, item = null) {
+            document.getElementById('clothingModal').style.display = 'block';
+            document.getElementById('modalTitle').textContent = edit ? 'Edit Clothing' : 'Add Clothing';
+            editMode = edit;
+            currentItem = item;
+    
+            // If editing, fill in the existing details
+            if (edit && item) {
+                document.getElementById('clothingName').value = item.name;
+                document.getElementById('material').value = item.material;
+                document.getElementById('clothingType').value = item.type; 
+                document.querySelector(`input[name="washType"][value="${item.washType}"]`).checked = true; // Set washType
+                document.querySelector(`input[name="temperature"][value="${item.temperature}"]`).checked = true;
+                document.getElementById('dryMethod').value = item.dryMethod;
+                document.getElementById('size').value = item.size;
+                document.getElementById('customInstructions').value = item.customInstructions;
+            } else {
+                clearModal();
+            }
+        }
+    
+        // Function to clear the modal fields
+        function clearModal() {
+            document.getElementById('clothingName').value = '';
+            document.getElementById('material').value = 'Select';
+            document.getElementById('clothingType').value = 'Select'; 
+            const temperatureChecked = document.querySelector('input[name="temperature"]:checked');
+            if (temperatureChecked) temperatureChecked.checked = false;
+            const washTypeChecked = document.querySelector('input[name="washType"]:checked');
+            if (washTypeChecked) washTypeChecked.checked = false;
+            document.getElementById('dryMethod').value = 'Select';
+            document.getElementById('size').value = 'Select'; 
+            document.getElementById('customInstructions').value = '';
+        }
+    
+        // Function to close the modal
+        function closeModal() {
+            document.getElementById('clothingModal').style.display = 'none';
+        }
+    
+        // Function to save clothing details
+        function saveClothing() {
+            const clothingName = document.getElementById('clothingName').value;
+            const material = document.getElementById('material').value;
+            const type = document.getElementById('clothingType').value; 
+            const washType = document.querySelector('input[name="washType"]:checked') ? document.querySelector('input[name="washType"]:checked').value : '';   
+            const temperature = document.querySelector('input[name="temperature"]:checked') ? document.querySelector('input[name="temperature"]:checked').value : '';
+            const dryMethod = document.getElementById('dryMethod').value;
+            const size = document.getElementById('size').value;
+            const customInstructions = document.getElementById('customInstructions').value;
+    
+            if (clothingName) {
+                if (editMode && currentItem) {
+                    // Edit existing item
+                    currentItem.name = clothingName;
+                    currentItem.material = material;
+                    currentItem.type = type; 
+                    currentItem.washType = washType;
+                    currentItem.temperature = temperature;
+                    currentItem.dryMethod = dryMethod;
+                    currentItem.size = size;
+                    currentItem.customInstructions = customInstructions;
+                } else {
+                    // Add new item
+                    const newItem = {
+                        name: clothingName,
+                        material: material,
+                        type: type,
+                        washType: washType, 
+                        temperature: temperature,
+                        dryMethod: dryMethod,
+                        size: size,
+                        customInstructions: customInstructions,
+                        dirty: false // Initialize the "Dirty" tag as false
+                    };
+    
+                    wardrobeData.push(newItem); // Add the new item to the wardrobe array
+                }
+    
+                saveWardrobeData(); // Save the updated data to localStorage
+                renderWardrobe(); // Re-render the wardrobe list
+                closeModal();
+            } else {
+                alert("Please enter a name for the clothing item.");
+            }
+        }
+    
+        // Function to render the wardrobe items
+        function renderWardrobe() {
+            const list = document.getElementById('clothingList');
+            list.innerHTML = ''; // Clear the existing list
+    
+            wardrobeData.forEach((item, index) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'clothing-item';
+                itemDiv.onclick = function() {
+                    if (removeMode) {
+                        itemToRemove = index;
+                        document.getElementById('confirmModal').style.display = 'block';
+                    } else {
+                        openModal(true, item);
+                    }
+                };
+    
+                const itemText = document.createElement('span');
+                itemText.textContent = item.name;
+    
+                const usedContainer = document.createElement('div');
+                usedContainer.className = 'used-container';
+    
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'used-checkbox';
+                checkbox.checked = item.dirty; // Set checkbox based on item's "Dirty" status
+                checkbox.onclick = function(event) {
+                    event.stopPropagation();
+                    item.dirty = checkbox.checked;          // Update "Dirty" status
+                    saveWardrobeData();                     // Save updated data to localStorage
+                };
+    
+                const usedLabel = document.createElement('span');
+                usedLabel.className = 'used-label';
+                usedLabel.textContent = 'Dirty';
+    
+                usedContainer.appendChild(checkbox);
+                usedContainer.appendChild(usedLabel);
+    
+                itemDiv.appendChild(itemText);
+                itemDiv.appendChild(usedContainer);
+                list.appendChild(itemDiv);
+            });
+        }
+    
+        // Function to enable remove mode
+        function enableRemoveMode() {
+            removeMode = true;
+            const removeButton = document.getElementById('removeButton');
+            removeButton.classList.add('remove-mode');
+            removeButton.textContent = "Remove (Click item)";
+        }
+    
+        // Function to close confirmation modal
+        function closeConfirmModal() {
+            document.getElementById('confirmModal').style.display = 'none';
+            removeMode = false;
+            resetRemoveButton();
+        }
+    
+        // Function to reset remove button
+        function resetRemoveButton() {
+            const removeButton = document.getElementById('removeButton');
+            removeButton.classList.remove('remove-mode');
+            removeButton.textContent = "Remove";
+        }
+    
+        // Function to confirm and remove clothing item
+        function confirmRemove() {
+            if (itemToRemove !== null) {
+                wardrobeData.splice(itemToRemove, 1); // Remove the selected item from the array
+                saveWardrobeData(); // Save the updated data to localStorage
+                renderWardrobe(); // Re-render the wardrobe list
+                closeConfirmModal();
+            }
+        }
+    
+        // Function to go back to the main page
+        function goBack() {
+            window.location.href = "index.html"; // Replace with the actual main page URL
+        }
+    
+        // Load wardrobe data when the page loads
+        window.onload = loadWardrobeData;
+    </script>
+    
+</body>
+</html>

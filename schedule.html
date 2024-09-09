@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Schedule Your Laundry</title>
+    <link rel="icon" href="https://via.placeholder.com/16x16" type="image/x-icon">
+    
+    <!-- FullCalendar CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
+
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
+            background-color: #ecc9d6f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.9); /* Slightly transparent white */
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            margin: 20px;
+            position: relative;
+        }
+        
+        h1 { 
+            color: #333;
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 30px;
+        }
+
+        #calendar {
+            margin-top: 20px;
+            max-width: 100%;
+            height: auto;
+            overflow: hidden;
+        }
+
+        #washerInfo {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f2f2f2;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+
+        .fc-toolbar-title {
+        color: #e4b5c6f4; 
+        font-size: 20px;
+        font-weight: 600;
+        }
+
+        .back-button, .calendar-button {
+            width: 250px;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #e4b5c6f4;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        .back-button:hover, .calendar-button:hover {
+            background-color: #9c506cf4;
+            transform: translateY(-3px);
+        }
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            background-color: rgba(0, 0, 0, 0.4); 
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto; 
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 600px;
+            border-radius: 10px;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .washer-input, .clothes-summary {
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            margin-top: 10px;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Schedule Your Laundry Days</h1>
+        <div id="calendar"></div>
+        <button class="back-button" onclick="goBack()">Back</button>
+    </div>
+
+    <!-- Modal for Laundry Scheduling -->
+    <div id="laundryModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeLaundryModal()">&times;</span>
+            <h2 id="selectedDateHeader"></h2>
+
+            <div>
+                <label>Select or add a wahser: </label>
+                <select id="washerList" onchange="updateRemainingWeights(); displaySelectedWasherInfo()">
+                    <option value="">Select Washer</option>
+                </select>
+                <button onclick="addNewWasher()">+</button>
+                <button onclick="removeWasher()">Remove</button>
+                <div class="washer-input" id="newWasherInput" style="display: none;">
+                    <input type="text" id="washerName" placeholder="Washer Name">
+                    <input type="number" step="0.1" id="washerMaxLoad" placeholder="Max Load (kg)">
+                    <button onclick="saveNewWasher()">Save</button>
+                </div>
+            </div>
+            
+            <!-- Washer Information Display -->
+            <div id="washerInfo" style="margin-top: 10px; font-weight: bold;"></div>
+
+            <h3>Summary of Dirty Clothes</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Wash Type</th>
+                        <th>Current Weight</th>
+                        <th>Remaining Capacity</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td onclick="openItemsModal('Dark')" style="cursor: pointer; text-decoration: underline;">Dark</td>
+                        <td id="darkWeight">-</td>
+                        <td id="darkRemaining">-</td>
+                    </tr>
+                    <tr>
+                        <td onclick="openItemsModal('White')" style="cursor: pointer; text-decoration: underline;">White</td>
+                        <td id="whiteWeight">-</td>
+                        <td id="whiteRemaining">-</td>
+                    </tr>
+                    <tr>
+                        <td onclick="openItemsModal('Colors')" style="cursor: pointer; text-decoration: underline;">Colors</td>
+                        <td id="colorsWeight">-</td>
+                        <td id="colorsRemaining">-</td>
+                    </tr>
+                    <tr>
+                        <td onclick="openItemsModal('Delicates')" style="cursor: pointer; text-decoration: underline;">Delicates/Separate</td>
+                        <td id="delicatesWeight">-</td>
+                        <td id="delicatesRemaining">-</td>
+                    </tr>
+                    <tr>
+                        <td onclick="openItemsModal('Not Sorted')" style="cursor: pointer; text-decoration: underline;">Not Sorted</td>
+                        <td id="notSortedWeight">-</td>
+                        <td id="notSortedRemaining">-</td>
+                    </tr>
+                </tbody>
+                
+            </table>
+
+            <div style="text-align: center;">
+                <button class="calendar-button" onclick="addToCalendar()">Add to Calendar</button>
+            </div>            
+        </div>
+    </div>
+
+    <!-- Modal for Viewing and Editing Items by Wash Type -->
+    <div id="itemsModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeItemsModal()">&times;</span>
+            <h2 id="itemsModalTitle"></h2>
+            <div id="itemsList"></div>
+            <button class="calendar-button" onclick="saveItems()">Save Changes</button>
+        </div>
+    </div>
+
+
+    <!-- FullCalendar JS -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+    <script>
+        let wardrobeData = [];     // This will hold the loaded wardrobe data
+        let washerData = [];       // This will hold the custom washer data
+        let selectedWasher = null; // Variable to keep track of the selected washer for editing
+        let bookedDates = [];      // This will store booked laundry dates
+        let calendar;
+
+        // Estimations for material weights (kg/m²)
+        const materialWeights = {
+            'Cotton': 0.08,    
+            'Denim': 0.2,
+            'Polyester': 0.06,
+            'Linen': 0.09,
+            'Wool': 0.14,
+            'Cashmere': 0.12,
+            'Silk': 0.04,
+            'Nylon': 0.07,
+            'Leather': 0.3,
+            'Viscose': 0.065
+        };
+
+        // Estimations for fabric area (m²)
+        const typeFabricArea = {
+            'T-shirt': 2,
+            'Sweater': 2.7,
+            'Hoodie': 3,
+            'Tank Top': 1.8,
+            'Blouse': 2.1,
+            'Button Up Shirt': 2.5,
+            'Dress': 3,
+            'Jeans': 2.8,
+            'Trousers': 2.8,
+            'Joggers': 2.9,
+            'Shorts': 2.45,
+            'Jacket': 3.2,
+            'Scarf': 1,
+            'Gloves': 0.5,
+            'Socks': 0.15
+        };
+
+        // Estimations for size multipliers
+        const sizeMultipliers = {
+            'XS': 0.8,
+            'S': 0.9,
+            'M': 1.0,
+            'L': 1.1,
+            'XL': 1.2
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadWardrobeData();
+            console.log(wardrobeData);
+            loadWasherData();
+            loadScheduleData();
+            
+            var calendarEl = document.getElementById('calendar');
+
+            // Initialize FullCalendar
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                selectable: true,
+                fixedWeekCount: false,
+                validRange: {
+                    start: new Date().toISOString().split('T')[0]  // Disable past dates
+                },
+                contentHeight: 'auto',
+                dateClick: function(info) {
+                    if (bookedDates.includes(info.dateStr)) {
+                        showChoiceBox(info.dateStr);
+                    } else {
+                        openLaundryModal(info.dateStr);
+                    }
+                },
+                events: function(fetchInfo, successCallback, failureCallback) {
+                    successCallback(bookedDates.map(date => ({
+                        start: date,
+                        display: 'background',
+                        backgroundColor: '#ffcccb'
+                    })));
+                }
+            });
+
+            calendar.render();
+        });
+
+        // Function to load wardrobe data from localStorage
+        function loadWardrobeData() {
+            const storedData = localStorage.getItem('wardrobeData');
+            if (storedData) {
+                wardrobeData = JSON.parse(storedData);
+
+                // Debugging: Check if washType is correctly loaded
+                wardrobeData.forEach(item => {
+                    if (!item.washType) {
+                        console.warn(`Item "${item.name}" does not have a washType set.`);
+                    }
+                });
+            }
+        }
+
+
+        function loadWasherData() {
+            const storedData = localStorage.getItem('washerData');
+            if (storedData) {
+                washerData = JSON.parse(storedData);
+
+                // Populate the washer dropdown
+                const washerList = document.getElementById('washerList');
+                washerData.forEach(washer => {
+                    const option = document.createElement('option');
+                    option.value = washer.maxLoad;
+                    option.text = washer.name;
+                    washerList.add(option);
+                });
+            }
+        }
+
+
+        // Function to load booked dates from localStorage
+        function loadScheduleData() {
+            const storedData = localStorage.getItem('bookedDates');
+            if (storedData) {
+                bookedDates = JSON.parse(storedData);
+            }
+        }
+
+        // Function to save washer data to localStorage
+        function saveWasherData() {
+            localStorage.setItem('washerData', JSON.stringify(washerData));
+        }
+
+        // Function to save booked dates to localStorage
+        function saveScheduleData() {
+            localStorage.setItem('bookedDates', JSON.stringify(bookedDates));
+        }
+
+        function showChoiceBox(date) {
+            const choiceBox = document.createElement('div');
+            choiceBox.style.position = 'fixed';
+            choiceBox.style.top = '50%';
+            choiceBox.style.left = '50%';
+            choiceBox.style.transform = 'translate(-50%, -50%)';
+            choiceBox.style.backgroundColor = 'white';
+            choiceBox.style.padding = '20px';
+            choiceBox.style.border = '1px solid #ddd';
+            choiceBox.style.borderRadius = '10px';
+            choiceBox.style.zIndex = '1000';
+
+            const editButton = document.createElement('button');
+            editButton.textContent = 'Edit';
+            editButton.onclick = function() {
+                document.body.removeChild(choiceBox);
+                openLaundryModal(date);
+            };
+
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = 'Delete';
+            deleteButton.onclick = function() {
+                document.body.removeChild(choiceBox);
+                deleteBooking(date);
+            };
+
+            choiceBox.appendChild(editButton);
+            choiceBox.appendChild(deleteButton);
+
+            document.body.appendChild(choiceBox);
+        }
+
+        function openLaundryModal(date) {
+            document.getElementById('selectedDateHeader').innerText = `Laundry Schedule for ${date}`;
+            document.getElementById('laundryModal').style.display = 'block';
+            updateSummaryTable();
+            document.getElementById('laundryModal').dataset.selectedDate = date;
+        }
+
+        function closeLaundryModal() {
+            document.getElementById('laundryModal').style.display = 'none';
+        }
+
+        function addNewWasher() {
+            document.getElementById('newWasherInput').style.display = 'block';
+        }
+
+        function displaySelectedWasherInfo() {
+            const washerList = document.getElementById('washerList');
+            const selectedOption = washerList.options[washerList.selectedIndex];
+            const washerInfoDiv = document.getElementById('washerInfo');
+
+            if (selectedOption.value) {
+                washerInfoDiv.textContent = `${selectedOption.text} - Max Load: ${selectedOption.value} kg`;
+            } else {
+                washerInfoDiv.textContent = ''; // Clear the display if no washer is selected
+            }
+        }
+
+        function saveNewWasher() {
+            const washerName = document.getElementById('washerName').value;
+            const washerMaxLoad = parseFloat(document.getElementById('washerMaxLoad').value);
+
+            if (washerName && washerMaxLoad) {
+                washerData.push({ name: washerName, maxLoad: washerMaxLoad });
+                saveWasherData(); // Save updated washer data to localStorage
+
+                const washerList = document.getElementById('washerList');
+                const option = document.createElement('option');
+                option.value = washerMaxLoad;
+                option.text = washerName;
+                washerList.add(option);
+                document.getElementById('newWasherInput').style.display = 'none';
+                document.getElementById('washerName').value = '';
+                document.getElementById('washerMaxLoad').value = '';
+
+                displaySelectedWasherInfo(); // Update the display with the new washer info
+            }
+        }
+
+
+        function removeWasher() {
+            const washerList = document.getElementById('washerList');
+            const selectedOption = washerList.options[washerList.selectedIndex];
+
+            if (selectedOption.value) {
+                const washerName = selectedOption.text;
+                
+                // Remove washer from washerData list
+                washerData = washerData.filter(washer => washer.name !== washerName);
+
+                // Remove washer from dropdown
+                washerList.removeChild(selectedOption);
+
+                // Save the updated washer data to localStorage
+                saveWasherData();
+
+                alert('Washer removed successfully!');
+                displaySelectedWasherInfo(); // Update the display after removal
+            } else {
+                alert('Please select a washer to remove.');
+            }
+        }
+
+
+        function calculateClothingWeight(item) {
+            const materialWeight = materialWeights[item.material] || 0.1; // Default to 0.1 if not found
+            const fabricArea = typeFabricArea[item.type] || 30; // Default to 30 dm² if not found
+            const sizeMultiplier = sizeMultipliers[item.size] || 1.0; // Default to 1.0 if not found
+
+            // Calculate the estimated weight
+            return materialWeight * fabricArea * sizeMultiplier;
+        }
+
+        function updateDirtyClothesWeight() {
+            let dirtyClothesWeight = {
+                dark: 0,
+                white: 0,
+                colors: 0,
+                delicates: 0,
+                notSorted: 0
+            };
+
+            // Iterate over wardrobeData to calculate the total weight for each category
+            wardrobeData.forEach(item => {
+                if (item.dirty) {
+                    const itemWeight = calculateClothingWeight(item);
+                    
+                    // Ensure washType is defined and use it to determine the category
+                    switch (item.washType) {
+                        case 'Dark':
+                            dirtyClothesWeight.dark += itemWeight;
+                            break;
+                        case 'White':
+                            dirtyClothesWeight.white += itemWeight;
+                            break;
+                        case 'Colors':
+                            dirtyClothesWeight.colors += itemWeight;
+                            break;
+                        case 'Delicates':
+                            dirtyClothesWeight.delicates += itemWeight;
+                            break;
+                        default:
+                            dirtyClothesWeight.notSorted += itemWeight;  // Default case for missing or unknown washType
+                            break;
+                    }
+                }
+            });
+
+            return dirtyClothesWeight;
+        }
+
+        function updateSummaryTable() {
+            const dirtyClothesWeight = updateDirtyClothesWeight();
+            document.getElementById('darkWeight').textContent = dirtyClothesWeight.dark.toFixed(3) + ' kg';     
+            document.getElementById('whiteWeight').textContent = dirtyClothesWeight.white.toFixed(3) + ' kg'; 
+            document.getElementById('colorsWeight').textContent = dirtyClothesWeight.colors.toFixed(3) + ' kg'; 
+            document.getElementById('delicatesWeight').textContent = dirtyClothesWeight.delicates.toFixed(3) + ' kg'; 
+            document.getElementById('notSortedWeight').textContent = dirtyClothesWeight.notSorted.toFixed(3) + ' kg'; 
+            updateRemainingWeights(); // Recalculate the remaining and overflow after updating weights
+        }
+
+
+
+        function updateRemainingWeights() {
+            const maxLoad = parseFloat(document.getElementById('washerList').value) || 0;
+            const dirtyClothesWeight = updateDirtyClothesWeight();
+
+            // Calculate the remaining capacity and overflow for each category
+            function calculateRemainingAndOverflow(weight) {
+                if (maxLoad === 0) return { remaining: '-', overflow: '' };
+                
+                const remaining = Math.max(0, maxLoad - weight).toFixed(3); // Change to 3 decimal places
+                const overflow = Math.max(0, weight - maxLoad).toFixed(3);  // Change to 3 decimal places
+
+                // If remaining capacity is zero and there is overflow, show "Full washer" instead of "0.000 kg"
+                const remainingText = remaining === '0.000' && overflow > 0 ? 'Full washer' : `${remaining} kg`;
+                const overflowText = overflow > 0 ? `(Overflow: ${overflow} kg)` : '';
+
+                return {
+                    remaining: remainingText,
+                    overflow: overflowText
+                };
+            }
+
+            // Update the summary table with the calculated values
+            const dark = calculateRemainingAndOverflow(dirtyClothesWeight.dark);
+            const white = calculateRemainingAndOverflow(dirtyClothesWeight.white);
+            const colors = calculateRemainingAndOverflow(dirtyClothesWeight.colors);
+            const delicates = calculateRemainingAndOverflow(dirtyClothesWeight.delicates);
+            const notSorted = calculateRemainingAndOverflow(dirtyClothesWeight.notSorted);
+
+            document.getElementById('darkRemaining').textContent = dark.remaining + ' ' + dark.overflow;
+            document.getElementById('whiteRemaining').textContent = white.remaining + ' ' + white.overflow;
+            document.getElementById('colorsRemaining').textContent = colors.remaining + ' ' + colors.overflow;
+            document.getElementById('delicatesRemaining').textContent = delicates.remaining + ' ' + delicates.overflow;
+            document.getElementById('notSortedRemaining').textContent = notSorted.remaining + ' ' + notSorted.overflow;
+        }
+
+
+        // Add a date to calendair
+        function addToCalendar() {
+            const selectedDate = document.getElementById('laundryModal').dataset.selectedDate;
+            if (selectedDate && !bookedDates.includes(selectedDate)) {
+                bookedDates.push(selectedDate);
+                saveScheduleData(); // Save updated dates to localStorage
+                alert('Laundry day added to your calendar!');
+                closeLaundryModal();
+                updateCalendarEvents();
+            }
+        }
+
+        // Remove the date from the bookedDates array
+        function deleteBooking(date) {
+            bookedDates = bookedDates.filter(d => d !== date);
+            saveScheduleData(); // Save the updated booked dates to localStorage
+            alert('Laundry day removed from your calendar!');
+            updateCalendarEvents();
+        }
+
+        // ITEM EDITING MODAL
+        // Function to open the items modal
+        function openItemsModal(washType) {
+            document.getElementById('itemsModalTitle').innerText = `Items in ${washType} Wash Type`;
+            document.getElementById('itemsModal').style.display = 'block';
+            renderItemsList(washType); // Render the items for the selected wash type
+        }
+
+        // Function to close the items modal
+        function closeItemsModal() {
+            document.getElementById('itemsModal').style.display = 'none';
+        }
+
+        // Function to render the list of items for a selected wash type
+        function renderItemsList(washType) {
+            const itemsListDiv = document.getElementById('itemsList');
+            itemsListDiv.innerHTML = ''; // Clear existing items
+            
+            const filteredItems = wardrobeData.filter(item => item.washType === washType); // Filter items by wash type
+
+            if (filteredItems.length === 0) {
+                itemsListDiv.innerHTML = `<p>No items in this category.</p>`;
+                return;
+            }
+
+            filteredItems.forEach(item => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'clothing-item';
+                
+                // Display item name and an edit button to change wash type
+                itemDiv.innerHTML = `
+                    <span>${item.name}</span>
+                    <select onchange="updateItemWashType('${item.name}', this.value)">
+                        <option value="Dark" ${item.washType === 'Dark' ? 'selected' : ''}>Dark</option>
+                        <option value="White" ${item.washType === 'White' ? 'selected' : ''}>White</option>
+                        <option value="Colors" ${item.washType === 'Colors' ? 'selected' : ''}>Colors</option>
+                        <option value="Delicates" ${item.washType === 'Delicates' ? 'selected' : ''}>Delicates</option>
+                        <option value="" ${!item.washType ? 'selected' : ''}>Not Sorted</option>
+                    </select>
+                `;
+                itemsListDiv.appendChild(itemDiv);
+            });
+        }
+
+        // Function to update the wash type of an item
+        function updateItemWashType(itemName, newWashType) {
+            const item = wardrobeData.find(i => i.name === itemName);
+            if (item) {
+                item.washType = newWashType;
+                saveWardrobeData(); // Save the updated wardrobe data
+                updateSummaryTable(); // Refresh the summary table to reflect changes
+            }
+        }
+
+        // Function to save changes from the items modal
+        function saveItems() {
+            alert('Changes saved successfully!');
+            closeItemsModal();
+            updateSummaryTable(); // Update the table with any changes made
+        }
+
+        
+
+        function updateCalendarEvents() {
+            calendar.refetchEvents(); // Refetches events to update calendar
+        }
+
+        function goBack() {
+            window.location.href = "index.html";
+        }
+    </script>    
+</body>
+</html>
+
