@@ -587,7 +587,7 @@
             const itemsListDiv = document.getElementById('itemsList');
             itemsListDiv.innerHTML = ''; // Clear existing items
             
-            const filteredItems = wardrobeData.filter(item => item.washType === washType); // Filter items by wash type
+            const filteredItems = wardrobeData.filter(item => item.washType === washType && item.dirty); // Filter items by wash type
 
             if (filteredItems.length === 0) {
                 itemsListDiv.innerHTML = `<p>No items in this category.</p>`;
