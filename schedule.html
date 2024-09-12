@@ -549,15 +549,36 @@
         }
 
 
-        // Add a date to calendair
+        // // Add a date to calendair
+        // function addToCalendar() {
+        //     const selectedDate = document.getElementById('laundryModal').dataset.selectedDate;
+        //     if (selectedDate && !bookedDates.includes(selectedDate)) {
+        //         bookedDates.push(selectedDate);
+        //         saveScheduleData(); // Save updated dates to localStorage
+        //         alert('Laundry day added to your calendar!');
+        //         closeLaundryModal();
+        //         updateCalendarEvents();
+        //     }
+        // }
+        // Add a date to calendair  
         function addToCalendar() {
             const selectedDate = document.getElementById('laundryModal').dataset.selectedDate;
             if (selectedDate && !bookedDates.includes(selectedDate)) {
+                const dirtyClothesWeight = updateDirtyClothesWeight(); // Get the weight of dirty clothes
+                console.log("Dirty Clothes Weight to Save:", dirtyClothesWeight); // Debugging
+
                 bookedDates.push(selectedDate);
                 saveScheduleData(); // Save updated dates to localStorage
+
+                // Serialize the dirty clothes weight for this date
+                localStorage.setItem(`dirtyClothesWeight_${selectedDate}`, JSON.stringify(dirtyClothesWeight));
+                console.log(`Saved dirty clothes weight for ${selectedDate} in localStorage.`); // Debugging
+
                 alert('Laundry day added to your calendar!');
                 closeLaundryModal();
                 updateCalendarEvents();
+            } else {
+                alert('Laundry day is already booked.');
             }
         }
 
@@ -642,4 +663,3 @@
     </script>    
 </body>
 </html>
-

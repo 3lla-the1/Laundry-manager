@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Calculate Carbon Footprint</title>
+    <link rel="icon" href="https://via.placeholder.com/16x16" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #a1c6e7; /* Light blue background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.9); /* Slightly transparent white */
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 90%;
+            margin: 20px;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            margin: 15px 0;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 8px;
+            font-size: 16px;
+            margin-top: 5px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px; /* Adds space between the buttons */
+            margin-top: 20px;
+        }
+
+        .button {
+            width: 250px; /* Fixed width for both buttons */
+            padding: 12px 24px;
+            background-color: #a1c6e7; 
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        .button:hover {
+            background-color: #357ab8; /* Slightly darker blue on hover */
+            transform: translateY(-3px);
+        }
+
+        .result {
+            margin-top: 20px;
+            font-size: 18px;
+            color: #333;
+        }
+
+        .comparison {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Calculate Your Laundry's Carbon Footprint</h1>
+
+        <div class="input-group">
+            <label for="selectedDate">Select Laundry Date:</label>
+            <select id="selectedDate">
+                <!-- Options will be dynamically generated from bookedDates -->
+            </select>
+        </div>
+
+        <div class="button-container">
+            <button class="button" onclick="goBack()">Back</button>
+            <button class="button" onclick="calculateCarbonFootprint()">Calculate Carbon Footprint</button>
+        </div>
+
+        <div class="result" id="result"></div>
+
+        <div class="comparison" id="comparison"></div>
+    </div>
+
+    <script>
+        let bookedDates = [];
+    
+        // Load booked dates from localStorage
+        function loadBookedDates() {
+            const storedDates = localStorage.getItem('bookedDates');
+            if (storedDates) {
+                bookedDates = JSON.parse(storedDates);
+                console.log("Booked Dates:", bookedDates); // Debugging
+                populateDateOptions();
+            } else {
+                console.error("No booked dates found in localStorage.");
+            }
+        }
+    
+        // Populate the laundry dates dropdown
+        function populateDateOptions() {
+            const dateSelect = document.getElementById('selectedDate');
+            bookedDates.forEach(date => {
+                const option = document.createElement('option');
+                option.value = date;
+                option.textContent = date;
+                dateSelect.appendChild(option);
+            });
+        }
+    
+        // Calculate carbon footprint based on the weight of dirty clothes for the selected laundry date
+        function calculateCarbonFootprint() {
+            const selectedDate = document.getElementById('selectedDate').value;
+            if (!selectedDate) {
+                alert('Please select a laundry date.');
+                return;
+            }
+    
+            // Deserialize the dirty clothes weight for the selected date
+            const dirtyClothesWeight = JSON.parse(localStorage.getItem(`dirtyClothesWeight_${selectedDate}`));
+            
+            if (!dirtyClothesWeight) {
+                console.error(`No dirty clothes weight found for ${selectedDate}`);
+                alert(`No data found for the selected date: ${selectedDate}`);
+                return;
+            }
+    
+            console.log("Dirty Clothes Weight Data:", dirtyClothesWeight); // Debugging
+    
+            // Sum up the total weight from all categories
+            const totalWeight = Object.values(dirtyClothesWeight).reduce((acc, weight) => acc + weight, 0);
+            console.log("Total Weight of Clothes:", totalWeight); // Debugging
+    
+            const carbonFactorPerKg = 2; // Carbon footprint factor in kg CO2 per kg of clothes
+            const carbonFootprint = totalWeight * carbonFactorPerKg; // Carbon footprint calculation
+    
+            displayResult(carbonFootprint);
+            showComparison(carbonFootprint);
+        }
+    
+        // Display the result of the carbon footprint calculation
+        function displayResult(carbonFootprint) {
+            console.log("Carbon Footprint:", carbonFootprint); // Debugging
+            document.getElementById('result').innerText = `Estimated Carbon Footprint: ${carbonFootprint.toFixed(2)} kg CO₂`;
+        }
+    
+        // Display a comparison message based on the carbon footprint
+        function showComparison(carbonFootprint) {
+            const comparisonContainer = document.getElementById('comparison');
+            comparisonContainer.innerHTML = ""; // Clear previous content
+    
+            let comparisonText = "";
+            let gifUrl = "";
+    
+            // Determine the comparison based on the carbon footprint
+            if (carbonFootprint <= 2) {
+                comparisonText = "This is equivalent to charging your phone 100 times!";
+                gifUrl = "https://media.giphy.com/media/3o7aD2saalBwwftBIY/giphy.gif";
+            } else if (carbonFootprint <= 5) {
+                comparisonText = "This is like driving a car for 20 kilometers!";
+                gifUrl = "https://media.giphy.com/media/l0HlVXJ8zGKba8iKQ/giphy.gif";
+            } else if (carbonFootprint <= 10) {
+                comparisonText = "This is like using a laptop for 24 hours straight!";
+                gifUrl = "https://media.giphy.com/media/26gJAoEEoR3mX3gkw/giphy.gif";
+            } else {
+                comparisonText = "This is like leaving your TV on for a week!";
+                gifUrl = "https://media.giphy.com/media/3ohzdYJK1wAdPWVk88/giphy.gif";
+            }
+    
+            const textElement = document.createElement("p");
+            textElement.textContent = comparisonText;
+            comparisonContainer.appendChild(textElement);
+    
+            const gifElement = document.createElement("img");
+            gifElement.src = gifUrl;
+            gifElement.alt = "Comparison GIF";
+            gifElement.style.width = "200px"; // Adjust width as needed
+            comparisonContainer.appendChild(gifElement);
+        }
+    
+        // Load data on page load
+        window.onload = function() {
+            loadBookedDates();
+        };
+    
+        // Function to go back to the main page
+        function goBack() {
+            window.location.href = "index.html"; // Replace with the actual main page URL
+        }
+    </script>
+    
+    
+</body>
+</html>

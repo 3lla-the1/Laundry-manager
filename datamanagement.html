@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Management</title>
+    <style>
+        .button {
+            width: 150px;
+            padding: 12px;
+            background-color: #58997a;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Manage Your Laundry Data</h1>
+
+    <!-- Save and Load buttons -->
+    <div class="button-container">
+        <button class="button" onclick="saveAllData()">Save Data</button>
+        <input type="file" id="loadDataInput" style="display:none;" onchange="loadAllData(this)" />
+        <button class="button" onclick="document.getElementById('loadDataInput').click()">Load Data</button>
+        <button class="button" onclick="goBack()">Go Back to Main</button>
+    </div>
+
+
+
+
+    <script>
+
+        // Check for session expiration and clear localStorage if necessary
+        function checkSession() {
+            const sessionTimestamp = localStorage.getItem('sessionTimestamp');
+            const now = new Date().getTime();
+
+            if (sessionTimestamp && (now - sessionTimestamp) > 60000) { // 1 minute in milliseconds
+                console.log("Session expired. Clearing localStorage.");
+                localStorage.clear(); // Clear all localStorage data
+            }
+
+            // Update the timestamp for the current session
+            localStorage.setItem('sessionTimestamp', now);
+        }
+        // Function to save all data into a JSON file and download it
+        function saveAllData() {
+            const allData = {
+                wardrobeData: localStorage.getItem('wardrobeData'),
+                bookedDates: localStorage.getItem('bookedDates'),
+                dirtyClothesWeight: {},
+                washData: localStorage.getItem('washerData') // Assuming this is stored in wash_2.html
+                
+            };
+
+            // For each booked date, save the dirty clothes weight data
+            const bookedDates = JSON.parse(localStorage.getItem('bookedDates'));
+            if (bookedDates) {
+                bookedDates.forEach(date => {
+                    allData.dirtyClothesWeight[date] = localStorage.getItem(`dirtyClothesWeight_${date}`);
+                });
+            }
+
+            // Create a downloadable JSON file
+            const jsonBlob = new Blob([JSON.stringify(allData, null, 2)], { type: "application/json" });
+            const url = URL.createObjectURL(jsonBlob);
+
+            // Create a download link
+            const downloadLink = document.createElement('a');
+            downloadLink.href = url;
+            downloadLink.download = "laundry_data.json"; // File name
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+        }
+
+        // Function to load all data from an uploaded JSON file
+        function loadAllData(fileInput) {
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(event) {
+                const allData = JSON.parse(event.target.result);
+
+                // Restore wardrobe data
+                localStorage.setItem('wardrobeData', allData.wardrobeData);
+
+                // Restore booked dates
+                localStorage.setItem('bookedDates', allData.bookedDates);
+
+                // Restore dirty clothes weight for each date
+                for (const date in allData.dirtyClothesWeight) {
+                    localStorage.setItem(`dirtyClothesWeight_${date}`, allData.dirtyClothesWeight[date]);
+                }
+
+                // Restore wash data (if applicable)
+                localStorage.setItem('washerData', allData.washData);
+
+                alert('Data loaded successfully!');
+                // Optionally, refresh the UI after loading the data
+            };
+
+            reader.readAsText(file);
+        }
+
+        // Check the session when the page is loaded
+        window.onload = function() {
+            checkSession(); // Ensure data is cleared if it's a new session
+        };
+
+        // Function to go back to the main page
+        function goBack() {
+            window.location.href = "index.html"; // Replace with the actual main page URL
+        }
+
+    </script>
+
+</body>
+</html>
