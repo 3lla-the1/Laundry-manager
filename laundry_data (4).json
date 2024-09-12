@@ -1,0 +1,10 @@
+{
+  "wardrobeData": "[{\"name\":\"Röd hoodie\",\"material\":\"Denim\",\"type\":\"Hoodie\",\"washType\":\"Colors\",\"temperature\":\"30\",\"dryMethod\":\"Tumble Dry Medium Heat\",\"size\":\"XS\",\"customInstructions\":\"\",\"dirty\":true},{\"name\":\"Black jeans\",\"material\":\"Denim\",\"type\":\"Jeans\",\"washType\":\"Dark\",\"temperature\":\"Cold\",\"dryMethod\":\"Tumble Dry Low Heat\",\"size\":\"S\",\"customInstructions\":\"\",\"dirty\":true},{\"name\":\"Blue pants\",\"material\":\"Wool\",\"type\":\"Trousers\",\"washType\":\"Colors\",\"temperature\":\"30\",\"dryMethod\":\"Flat Dry\",\"size\":\"M\",\"customInstructions\":\"\",\"dirty\":true},{\"name\":\"Underwear\",\"material\":\"Silk\",\"type\":\"Scarf\",\"washType\":\"Delicates\",\"temperature\":\"50\",\"dryMethod\":\"Tumble Dry High Heat\",\"size\":\"L\",\"customInstructions\":\"\",\"dirty\":true},{\"name\":\"Socks\",\"material\":\"Leather\",\"type\":\"Socks\",\"washType\":\"Delicates\",\"temperature\":\"50\",\"dryMethod\":\"Line Dry\",\"size\":\"L\",\"customInstructions\":\"\",\"dirty\":false}]",
+  "bookedDates": "[\"2024-09-09\",\"2024-09-13\",\"2024-09-14\"]",
+  "dirtyClothesWeight": {
+    "2024-09-09": "null",
+    "2024-09-13": "{\"dark\":0.504,\"white\":0,\"colors\":0.4800000000000001,\"delicates\":0.044000000000000004,\"notSorted\":0}",
+    "2024-09-14": "{\"dark\":0.504,\"white\":0,\"colors\":0.8720000000000001,\"delicates\":0.044000000000000004,\"notSorted\":0}"
+  },
+  "washData": null
+}
