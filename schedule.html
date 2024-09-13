@@ -2,11 +2,15 @@
 <html>
 <head>
     <title>Schedule Your Laundry</title>
-    <link rel="icon" href="https://via.placeholder.com/16x16" type="image/x-icon">
-    
+
     <!-- FullCalendar CSS -->
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
 
+    <!-- FullCalendar JS -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+
+    <link rel="icon" href="https://via.placeholder.com/16x16" type="image/x-icon">
+    
     <style>
         body { 
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
@@ -139,7 +143,7 @@
             <h2 id="selectedDateHeader"></h2>
 
             <div>
-                <label>Select or add a wahser: </label>
+                <label>Select or add a wahser to calculate: </label>
                 <select id="washerList" onchange="updateRemainingWeights(); displaySelectedWasherInfo()">
                     <option value="">Select Washer</option>
                 </select>
@@ -210,9 +214,6 @@
         </div>
     </div>
 
-
-    <!-- FullCalendar JS -->
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
     <script>
         let wardrobeData = [];     // This will hold the loaded wardrobe data
         let washerData = [];       // This will hold the custom washer data
@@ -263,12 +264,18 @@
         };
 
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM fully loaded and parsed'); // Debugging
             loadWardrobeData();
             console.log(wardrobeData);
             loadWasherData();
             loadScheduleData();
             
             var calendarEl = document.getElementById('calendar');
+
+            if (!calendarEl) {                                  //Debugging
+                console.error('Calendar element not found!');
+                return;
+            }
 
             // Initialize FullCalendar
             calendar = new FullCalendar.Calendar(calendarEl, {
@@ -296,40 +303,61 @@
             });
 
             calendar.render();
+            console.log('Calendar initialized and rendered'); // Debugging
         });
 
-        // Function to load wardrobe data from localStorage
         function loadWardrobeData() {
             const storedData = localStorage.getItem('wardrobeData');
             if (storedData) {
                 wardrobeData = JSON.parse(storedData);
 
-                // Debugging: Check if washType is correctly loaded
-                wardrobeData.forEach(item => {
-                    if (!item.washType) {
-                        console.warn(`Item "${item.name}" does not have a washType set.`);
-                    }
-                });
+                // Check if wardrobeData is an array before processing
+                if (Array.isArray(wardrobeData)) {
+                    wardrobeData.forEach(item => {
+                        if (!item.washType) {
+                            console.warn(`Item "${item.name}" does not have a washType set.`);
+                        }
+                    });
+                } else {
+                    console.warn('Wardrobe data is not in the correct format.');
+                }
+            } else {
+                console.warn('No wardrobe data found in localStorage.');
             }
         }
-
 
         function loadWasherData() {
             const storedData = localStorage.getItem('washerData');
-            if (storedData) {
-                washerData = JSON.parse(storedData);
-
-                // Populate the washer dropdown
-                const washerList = document.getElementById('washerList');
-                washerData.forEach(washer => {
-                    const option = document.createElement('option');
-                    option.value = washer.maxLoad;
-                    option.text = washer.name;
-                    washerList.add(option);
-                });
+            if (storedData && storedData.trim() !== '' && storedData !== 'undefined') {
+                try {
+                    washerData = JSON.parse(storedData);
+                    
+                    // Ensure washerData is an array before iterating
+                    if (Array.isArray(washerData)) {
+                        // Populate the washer dropdown
+                        const washerList = document.getElementById('washerList');
+                        washerData.forEach(washer => {
+                            const option = document.createElement('option');
+                            option.value = washer.maxLoad;
+                            option.text = washer.name;
+                            washerList.add(option);
+                        });
+                    } else {
+                        console.warn('Washer data is not in the correct format. Reinitializing as an empty array.');
+                        washerData = []; // Reinitialize as an empty array if the format is incorrect
+                        saveWasherData();
+                    }
+                } catch (e) {
+                    console.error('Error parsing washer data from localStorage:', e);
+                    washerData = []; // Reinitialize washerData to an empty array on error
+                    saveWasherData();
+                }
+            } else {
+                console.warn('No washer data found in localStorage. Initializing as an empty array.');
+                washerData = []; // Initialize washerData as an empty array if not found
+                saveWasherData();
             }
         }
-
 
         // Function to load booked dates from localStorage
         function loadScheduleData() {
@@ -388,6 +416,7 @@
             document.getElementById('laundryModal').dataset.selectedDate = date;
         }
 
+
         function closeLaundryModal() {
             document.getElementById('laundryModal').style.display = 'none';
         }
@@ -413,6 +442,11 @@
             const washerMaxLoad = parseFloat(document.getElementById('washerMaxLoad').value);
 
             if (washerName && washerMaxLoad) {
+                // Ensure washerData is an array
+                if (!Array.isArray(washerData)) {
+                    washerData = []; // Initialize as an empty array if not already an array
+                }
+
                 washerData.push({ name: washerName, maxLoad: washerMaxLoad });
                 saveWasherData(); // Save updated washer data to localStorage
 
@@ -426,9 +460,10 @@
                 document.getElementById('washerMaxLoad').value = '';
 
                 displaySelectedWasherInfo(); // Update the display with the new washer info
+            } else {
+                alert('Please provide valid washer details.');
             }
         }
-
 
         function removeWasher() {
             const washerList = document.getElementById('washerList');
@@ -547,28 +582,16 @@
             document.getElementById('delicatesRemaining').textContent = delicates.remaining + ' ' + delicates.overflow;
             document.getElementById('notSortedRemaining').textContent = notSorted.remaining + ' ' + notSorted.overflow;
         }
-
-
-        // // Add a date to calendair
-        // function addToCalendar() {
-        //     const selectedDate = document.getElementById('laundryModal').dataset.selectedDate;
-        //     if (selectedDate && !bookedDates.includes(selectedDate)) {
-        //         bookedDates.push(selectedDate);
-        //         saveScheduleData(); // Save updated dates to localStorage
-        //         alert('Laundry day added to your calendar!');
-        //         closeLaundryModal();
-        //         updateCalendarEvents();
-        //     }
-        // }
-        // Add a date to calendair  
+        
+        // Add a date to calendar  
         function addToCalendar() {
             const selectedDate = document.getElementById('laundryModal').dataset.selectedDate;
             if (selectedDate && !bookedDates.includes(selectedDate)) {
-                const dirtyClothesWeight = updateDirtyClothesWeight(); // Get the weight of dirty clothes
+                const dirtyClothesWeight = updateDirtyClothesWeight();            // Get the calculated weight of dirty clothes
                 console.log("Dirty Clothes Weight to Save:", dirtyClothesWeight); // Debugging
 
-                bookedDates.push(selectedDate);
-                saveScheduleData(); // Save updated dates to localStorage
+                bookedDates.push(selectedDate);                                   //Push to list
+                saveScheduleData();                                               // Save updated dates to localStorage
 
                 // Serialize the dirty clothes weight for this date
                 localStorage.setItem(`dirtyClothesWeight_${selectedDate}`, JSON.stringify(dirtyClothesWeight));
@@ -651,7 +674,10 @@
             updateSummaryTable(); // Update the table with any changes made
         }
 
-        
+        // Function to save wardrobe data to localStorage
+        function saveWardrobeData() {
+            localStorage.setItem('wardrobeData', JSON.stringify(wardrobeData));
+        }
 
         function updateCalendarEvents() {
             calendar.refetchEvents(); // Refetches events to update calendar
