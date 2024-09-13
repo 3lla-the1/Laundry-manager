@@ -159,55 +159,52 @@
             const totalWeight = Object.values(dirtyClothesWeight).reduce((acc, weight) => acc + weight, 0);
             console.log("Total Weight of Clothes:", totalWeight); // Debugging
     
-            const carbonFactorPerKg = 0.19; // Carbon footprint factor in kg CO2 per kg of clothes
-            const carbonFootprint = carbonFactorPerKg / totalWeight; // Carbon footprint calculation
+            const carbonFactorPerKg = 2; // Carbon footprint factor in kg CO2 per kg of clothes
+            const carbonFootprint = totalWeight * carbonFactorPerKg; // Carbon footprint calculation
     
-            displayResult(carbonFootprint); 
+            displayResult(carbonFootprint);
             showComparison(carbonFootprint);
         }
     
         // Display the result of the carbon footprint calculation
         function displayResult(carbonFootprint) {
             console.log("Carbon Footprint:", carbonFootprint); // Debugging
-            document.getElementById('result').innerText = `Estimated Carbon Footprint: ${carbonFootprint.toFixed(2)} kg CO₂`;
-        }  
+            document.getElementById('result').innerText = `Estimated Carbon Footprint: ${carbonFootprint.toFixed(2)} kg CO2`;
+        }
     
+        // Display a comparison message based on the carbon footprint
         function showComparison(carbonFootprint) {
             const comparisonContainer = document.getElementById('comparison');
             comparisonContainer.innerHTML = ""; // Clear previous content
-
+    
             let comparisonText = "";
             let gifUrl = "";
-
+    
             // Determine the comparison based on the carbon footprint
-            if (carbonFootprint <= 0.02) {
+            if (carbonFootprint <= 2) {
                 comparisonText = "This is equivalent to charging your phone 100 times!";
-                gifUrl = 'https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExNTdlNDU0ejhudDU4dHZpbXVva2F5Zmxyb3pxNnR0NzFzMDM1NjUyNiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/9RXGuYWcUhScvV2D2H/giphy.gif';
-            } else if (carbonFootprint <= 0.06) {
-                comparisonText = "This is like using a laptop for 8 hours!";
-                gifUrl = "https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExNzIwbW1maTZxNWt6ZDBhcm0ybHo2aXduYzlxMHBubXZva2gybzBnYiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/E4pi99w43ecCV1n9jF/giphy.gif";
-            } else if (carbonFootprint <= 0.24) {
-                comparisonText = "This is like driving a car for 1 kilometer!";
-                gifUrl = "https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExYjJpeDA5eWxndW43aG15dTZ4dmh6ZTUxY3ZibmU1Z2N0dDZyZmZlcCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/w89ak63KNl0nJl80ig/giphy.gif";
-            } else if (carbonFootprint <= 0.1) {
-                comparisonText = "This is like running a 60W light bulb for 10 hours!";
-                gifUrl = "https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExeGY4dzA5ZmlsZ2JnODVncWZxOTBvOWNuOTBhNTMxdnA3djE2eDNnNyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Lopx9eUi34rbq/giphy.gif";
+                gifUrl = "https://media.giphy.com/media/3o7aD2saalBwwftBIY/giphy.gif";
+            } else if (carbonFootprint <= 5) {
+                comparisonText = "This is like driving a car for 20 kilometers!";
+                gifUrl = "https://media.giphy.com/media/l0HlVXJ8zGKba8iKQ/giphy.gif";
+            } else if (carbonFootprint <= 10) {
+                comparisonText = "This is like using a laptop for 24 hours straight!";
+                gifUrl = "https://media.giphy.com/media/26gJAoEEoR3mX3gkw/giphy.gif";
             } else {
-                comparisonText = "This is like driving a car for 5 kilometers!";
-                gifUrl = "https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExeHhzczBkM2lmcjdlaWdydGlvYzd4cWllYm1jZ2dkd2kxeGNtNHJuYSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/CBWAO9TXgnh7dapdGs/giphy.gif";
+                comparisonText = "This is like leaving your TV on for a week!";
+                gifUrl = "https://media.giphy.com/media/3ohzdYJK1wAdPWVk88/giphy.gif";
             }
-
+    
             const textElement = document.createElement("p");
             textElement.textContent = comparisonText;
             comparisonContainer.appendChild(textElement);
-
+    
             const gifElement = document.createElement("img");
             gifElement.src = gifUrl;
             gifElement.alt = "Comparison GIF";
             gifElement.style.width = "200px"; // Adjust width as needed
             comparisonContainer.appendChild(gifElement);
         }
-
     
         // Load data on page load
         window.onload = function() {
