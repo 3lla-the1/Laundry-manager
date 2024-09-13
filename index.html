@@ -1,6 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interactive Jupyter/Colab Web Interface</title>
     <link rel="icon" href="https://via.placeholder.com/16x16" type="image/x-icon">
 
@@ -22,7 +24,6 @@
             overflow: hidden;
         }
         
-        /* Container styling */
         .container {
             text-align: center;
             background-color: rgba(255, 255, 255, 0.9); /* Slightly transparent white */
@@ -33,84 +34,182 @@
             position: relative;
         }
 
-        /* Title styling */
         h1 {
-            color: #333; /* Darker text for contrast */
+            color: #333;
             font-size: 28px;
             font-weight: 600;
             margin-bottom: 30px;
         }
 
-        /* Wrapper for icons and buttons */
         .button-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .row {
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 40px; /* Adds space between each button and icon pair */
+            gap: 40px; /* Adds space between the buttons */
         }
 
-        /* Individual item styling */
         .item {
             display: flex;
             flex-direction: column;
             align-items: center;
         }
 
-        /* Icon styling */
         .material-icons {
-            font-size: 36px; /* Adjust icon size */
-            color: #58997a; /* Match icon color with the button */
-            margin-bottom: 10px; /* Space between icon and button */
+            font-size: 36px;
+            color: #58997a;
+            margin-bottom: 10px;
         }
 
-        /* Button styling */
         .button {
             width: 150px;
             margin-top: 10px;
             padding: 12px 24px;
-            background-color: #58997a; /* Blue color matching background */
+            background-color: #58997a;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             font-size: 16px;
-            transition: background-color 0.3s, transform 0.2s; /* Added transition for hover effect */
+            transition: background-color 0.3s, transform 0.2s;
         }
 
         .button:hover {
-            background-color: #496e5c; /* Slightly darker blue on hover */
-            transform: translateY(-3px); /* Lifts the button slightly on hover */
+            background-color: #496e5c;
+            transform: translateY(-3px);
+        }
+
+        /* Styles specifically for the "Manage Your Data" button */
+        .manage-data {
+            width: auto; /* Adjusts width to fit the content */
+            background-color: #828def; /* Different color for the button */
+        }
+
+        .manage-data:hover {
+            background-color: #4b5296; /* Different hover color for the button */
+        }
+
+        /* Style for the "Manage Your Data" icon */
+        .data-icon {
+            color: #828def; /* Different color for the icon */
+        }
+
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 100; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 19.5% auto; 
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 600px;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 101; 
+        }
+
+        .modal-content .button {
+            background-color: #828def; /* Match the color of the "Manage Your Data" button */
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .modal-content .button:hover {
+            background-color: #4b5296; /* Match hover color of the "Manage Your Data" button */
+        }
+
+        .modal-content .button .material-icons {
+            color: white; /* Make the icons white for the buttons */
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 40px; 
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
-    <!-- Main Content -->
     <div class="container">
         <h1>Welcome to Your Laundry Manager</h1>
 
         <!-- Icons and Buttons Container -->
         <div class="button-container">
-            <!-- Icon and Button for Wardrobe -->
-            <div class="item">
-                <span class="material-icons">checkroom</span>
-                <button class="button" onclick="handleWardrobe()">Wardrobe</button>
+            <!-- Row for the three main buttons -->
+            <div class="row">
+                <div class="item">
+                    <span class="material-icons">checkroom</span>
+                    <button class="button" onclick="handleWardrobe()">Wardrobe</button>
+                </div>
+
+                <div class="item">
+                    <span class="material-icons">event_note</span>
+                    <button class="button" onclick="handleSchedule()">Schedule</button>
+                </div>
+
+                <div class="item">
+                    <span class="material-icons">local_laundry_service</span>
+                    <button class="button" onclick="handleWash()">Wash</button>
+                </div>
             </div>
 
-            <!-- Icon and Button for Schedule -->
-            <div class="item">
-                <span class="material-icons">event_note</span>
-                <button class="button" onclick="handleSchedule()">Schedule</button>
+            <!-- Button for Data Management -->
+            <div class="item" style="margin-top: 20px;">
+                <span class="material-icons data-icon">data_usage</span>
+                <button class="button manage-data" onclick="openDataModal()">Manage Your Data</button>
             </div>
+        </div>
+    </div>
 
-            <!-- Icon and Button for Wash -->
-            <div class="item">
-                <span class="material-icons">local_laundry_service</span>
-                <button class="button" onclick="handleWash()">Wash</button>
+    <!-- Modal for Data Management -->
+    <div id="dataModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeDataModal()">&times;</span>
+            <h2>Manage Your Laundry Data</h2>
+            <div class="modal-buttons">
+                <!-- Save Data Button with Icon -->
+                <button class="button" onclick="saveAllData()">
+                    <span class="material-icons">save</span> <!-- Save icon -->
+                    Save Data
+                </button>
+                <input type="file" id="loadDataInput" style="display:none;" onchange="loadAllData(this)" />
+                <!-- Load Data Button with Icon -->
+                <button class="button" onclick="document.getElementById('loadDataInput').click()">
+                    <span class="material-icons">cloud_upload</span> <!-- Load/Upload icon -->
+                    Load Data
+                </button>
             </div>
-
-            </div> class="item">
-                <span class="material-icons">local_laundry_service</span>
-                <button class="button" onclick="handledata()">Data</button>
         </div>
     </div>
 
@@ -124,11 +223,66 @@
         }
 
         function handleWash() {
-            window.location.href = "wash_2.html"; // Redirect to the schedule page
+            window.location.href = "wash_2.html"; // Redirect to the wash page
         }
 
-        function handledata() {
-            window.location.href = "datamanagement.html"; // Redirect to the schedule page
+        // Function to open the data management modal
+        function openDataModal() {
+            document.getElementById('dataModal').style.display = 'block';
+        }
+
+        // Function to close the data management modal
+        function closeDataModal() {
+            document.getElementById('dataModal').style.display = 'none';
+        }
+
+        // Functions for managing data (same as before)
+        function saveAllData() {
+            const allData = {
+                wardrobeData: localStorage.getItem('wardrobeData'),
+                bookedDates: localStorage.getItem('bookedDates'),
+                dirtyClothesWeight: {},
+                washerData: localStorage.getItem('washerData') 
+            };
+
+            const bookedDates = JSON.parse(localStorage.getItem('bookedDates'));
+            if (bookedDates) {
+                bookedDates.forEach(date => {
+                    allData.dirtyClothesWeight[date] = localStorage.getItem(`dirtyClothesWeight_${date}`);
+                });
+            }
+
+            const jsonBlob = new Blob([JSON.stringify(allData, null, 2)], { type: "application/json" });
+            const url = URL.createObjectURL(jsonBlob);
+
+            const downloadLink = document.createElement('a');
+            downloadLink.href = url;
+            downloadLink.download = "laundry_data.json";
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+        }
+
+        function loadAllData(fileInput) {
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(event) {
+                const allData = JSON.parse(event.target.result);
+
+                localStorage.setItem('wardrobeData', allData.wardrobeData);
+                localStorage.setItem('bookedDates', allData.bookedDates);
+
+                for (const date in allData.dirtyClothesWeight) {
+                    localStorage.setItem(`dirtyClothesWeight_${date}`, allData.dirtyClothesWeight[date]);
+                }
+
+                localStorage.setItem('washerData', allData.washerData);
+
+                alert('Data loaded successfully!');
+            };
+
+            reader.readAsText(file);
         }
     </script>
 </body>
